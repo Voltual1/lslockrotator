@@ -1,0 +1,73 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch: # 添加手动触发按钮，方便测试
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 保持完整历史记录以便获取版本信息
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        
+      - name: Decode Keystore
+        env:
+          ENCODED_STRING: ${{ secrets.SIGNING_KEY }}
+        run: |
+          # 将解密后的 keystore 放到项目根目录
+          echo $ENCODED_STRING | base64 -d > tag_keystore.p12
+
+      - name: Build with Gradle
+        # 指定编译 demo-module
+        run: ./gradlew :samples:demo-module:assembleRelease
+        env:
+          # 使用绝对路径指向刚才生成的 keystore
+          KEYSTORE_PATH: ${{ github.workspace }}/tag_keystore.p12
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}          
+
+      - name: Get version info
+        id: version
+        shell: bash
+        run: |
+          echo "BUILD_VERSION=auto-build-$(date +%Y%m%d_%H%M%S)-${GITHUB_SHA:0:8}" >> $GITHUB_OUTPUT
+          echo "TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")" >> $GITHUB_OUTPUT
+
+      - name: Create Draft Release
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.BUILD_VERSION }}
+          name: "LS Lock Rotator ${{ steps.version.outputs.BUILD_VERSION }}"
+          body: |
+            ### 构建信息
+            - 提交: `${{ github.sha }}`
+            - 构建时间: `${{ steps.version.outputs.TIMESTAMP }}`
+            
+            **注意**: 这是一个自动构建的 Draft Release。
+          draft: true
+          files: |
+            # 这里的路径对应 demo-module 的输出路径
+            samples/demo-module/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

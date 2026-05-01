@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:name=".application.DemoApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="LS Lock Rotator"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true">
+
+        <!-- 设置为 Xposed 模块 -->
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+
+        <!-- 设置你的模块描述 -->
+        <meta-data
+            android:name="xposeddescription"
+            android:value="将 LineageOS 锁屏界面的锁头图标旋转 180 度" />
+
+        <!-- 最低 Xposed 版本号 -->
+        <meta-data
+            android:name="xposedminversion"
+            android:value="93" />
+
+        <!-- LSPosed 作用域声明，用于自动勾选作用域 -->
+        <meta-data
+            android:name="xposedscope"
+            android:resource="@array/module_scope" />
+
+    </application>
+</manifest>
