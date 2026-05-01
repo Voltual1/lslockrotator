@@ -38,5 +38,5 @@ gropify {
     }
 }
 rootProject.name = "YukiHookAPI"
-include(":samples:demo-app", ":samples:demo-module")
+include(":samples:demo-module")
 include(":yukihookapi-core", ":yukihookapi-ksp-xposed", ":yukihookapi-stub")
