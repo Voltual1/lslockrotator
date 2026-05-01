@@ -31,7 +31,7 @@ gropify {
     }
     rootProject { common { isEnabled = false } }
     projects(":samples") { common { isEnabled = false } }
-    projects(":samples:demo-app", ":samples:demo-module", ":yukihookapi-stub") { android { isEnabled = false } }
+    projects(":samples:demo-module", ":yukihookapi-stub") { android { isEnabled = false } }
     projects(":yukihookapi-core", ":yukihookapi-ksp-xposed") {
         android { className = rootProject.name }
         jvm { className = rootProject.name }
